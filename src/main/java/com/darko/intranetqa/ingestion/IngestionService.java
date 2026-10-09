@@ -32,7 +32,7 @@ public class IngestionService {
 
     private final VectorStore vectorStore;
     private final DocumentRecordRepository documentRecordRepository;
-    private final TokenTextSplitter splitter = new TokenTextSplitter();
+    private final TokenTextSplitter splitter = TokenTextSplitter.builder().build();
 
     public IngestionService(VectorStore vectorStore, DocumentRecordRepository documentRecordRepository) {
         this.vectorStore = vectorStore;
