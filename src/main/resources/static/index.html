@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Intranet Q&amp;A</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Cpath d='M9 11h14M9 16h14M9 21h8' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#f6f7fb; --panel:#ffffff; --panel-2:#f0f2f8; --border:#e3e6ef;
+  --text:#161a2b; --muted:#6a7189; --accent:#4f46e5; --accent-2:#6366f1; --accent-text:#fff;
+  --user-bubble:#4f46e5; --bot-bubble:#ffffff; --danger:#d93b4b; --ok:#16a34a;
+  --shadow:0 1px 2px rgba(20,24,50,.06),0 8px 24px rgba(20,24,50,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0e1020; --panel:#161933; --panel-2:#1d2142; --border:#2a2f55;
+    --text:#e8eaf6; --muted:#8e94b8; --accent:#7c83ff; --accent-2:#9399ff; --accent-text:#0e1020;
+    --user-bubble:#4f46e5; --bot-bubble:#1d2142; --danger:#ff6b7a; --ok:#4ade80;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+  }
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+.hidden{display:none!important}
+
+/* ---------- Login ---------- */
+#login{min-height:100%;display:grid;place-items:center;padding:24px;
+  background:radial-gradient(900px 500px at 20% -10%,rgba(99,102,241,.18),transparent),
+             radial-gradient(700px 500px at 100% 110%,rgba(79,70,229,.14),transparent),var(--bg)}
+.card{width:100%;max-width:400px;background:var(--panel);border:1px solid var(--border);
+  border-radius:20px;padding:32px;box-shadow:var(--shadow)}
+.logo{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  display:grid;place-items:center;margin-bottom:18px}
+.logo svg{width:24px;height:24px;stroke:#fff}
+.card h1{font-size:22px;margin:0 0 4px}
+.card p.sub{margin:0 0 22px;color:var(--muted)}
+label{display:block;font-size:13px;font-weight:600;margin:14px 0 6px}
+input[type=text],input[type=password],select{width:100%;padding:11px 13px;border-radius:11px;
+  border:1px solid var(--border);background:var(--panel-2);outline:none;transition:border-color .15s,box-shadow .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 16px;border:0;border-radius:11px;
+  background:var(--accent);color:var(--accent-text);font-weight:600;cursor:pointer;transition:filter .15s,transform .05s}
+.btn:hover{filter:brightness(1.08)} .btn:active{transform:translateY(1px)} .btn:disabled{opacity:.55;cursor:not-allowed}
+.btn.block{width:100%;margin-top:22px}
+.btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn.ghost:hover{color:var(--text);filter:none;background:var(--panel-2)}
+.error{color:var(--danger);font-size:13px;margin-top:12px;min-height:18px}
+.demo{margin-top:20px;padding-top:16px;border-top:1px dashed var(--border);font-size:13px;color:var(--muted)}
+.demo button{background:var(--panel-2);border:1px solid var(--border);border-radius:999px;padding:4px 10px;margin:6px 6px 0 0;cursor:pointer;font-size:12.5px}
+.demo button:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ---------- App shell ---------- */
+#app{height:100%;display:grid;grid-template-columns:320px 1fr}
+aside{background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:0}
+.brand{display:flex;align-items:center;gap:10px;padding:18px 18px 12px;font-weight:700;font-size:17px}
+.brand .logo{margin:0;width:34px;height:34px;border-radius:9px}
+.brand .logo svg{width:19px;height:19px}
+.me{margin:0 14px 10px;padding:12px;border-radius:14px;background:var(--panel-2);border:1px solid var(--border);display:flex;gap:11px;align-items:center}
+.avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;display:grid;place-items:center;font-weight:700;text-transform:uppercase;flex:none}
+.me .who{min-width:0;flex:1} .me .name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.chip{font-size:11px;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);font-weight:600}
+.chip.role{background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok)}
+.section{padding:6px 14px;overflow:auto;min-height:0}
+.section h3{font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:14px 4px 8px}
+.drop{border:1.5px dashed var(--border);border-radius:14px;padding:16px;text-align:center;color:var(--muted);cursor:pointer;transition:all .15s;font-size:13.5px}
+.drop:hover,.drop.over{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 6%,transparent)}
+.drop strong{display:block;color:var(--text);font-size:14px;margin-bottom:2px}
+.upload-row{display:flex;gap:8px;margin-top:10px}
+.upload-row select{flex:1;padding:9px 11px}
+.upload-row .btn{padding:9px 14px}
+.picked{margin-top:8px;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.status{font-size:12.5px;margin-top:8px;min-height:16px}
+.status.err{color:var(--danger)} .status.ok{color:var(--ok)}
+.doc{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;border:1px solid transparent}
+.doc:hover{background:var(--panel-2);border-color:var(--border)}
+.doc .ic{width:32px;height:32px;border-radius:9px;background:var(--panel-2);display:grid;place-items:center;flex:none;font-size:11px;font-weight:700;color:var(--accent)}
+.doc .meta{min-width:0;flex:1} .doc .fn{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.doc .sub{font-size:12px;color:var(--muted)}
+.doc .del{opacity:0;background:none;border:0;color:var(--muted);cursor:pointer;padding:4px;border-radius:7px}
+.doc:hover .del{opacity:1} .doc .del:hover{color:var(--danger);background:color-mix(in srgb,var(--danger) 12%,transparent)}
+.empty{color:var(--muted);font-size:13px;padding:6px 4px}
+.side-foot{margin-top:auto;padding:14px;border-top:1px solid var(--border)}
+
+/* ---------- Chat ---------- */
+main{display:flex;flex-direction:column;min-width:0;min-height:0}
+.topbar{display:none;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--panel)}
+.topbar button{background:none;border:0;cursor:pointer;padding:4px;color:var(--text)}
+#messages{flex:1;overflow:auto;padding:28px 20px 12px;scroll-behavior:smooth}
+.thread{max-width:780px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.welcome{text-align:center;padding:9vh 12px 0}
+.welcome .logo{margin:0 auto 18px;width:56px;height:56px;border-radius:16px}
+.welcome .logo svg{width:30px;height:30px}
+.welcome h2{font-size:26px;margin:0 0 6px} .welcome p{color:var(--muted);margin:0 auto;max-width:460px}
+.suggest{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:22px}
+.suggest button{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:9px 13px;cursor:pointer;font-size:13.5px;box-shadow:var(--shadow)}
+.suggest button:hover{border-color:var(--accent);color:var(--accent)}
+.msg{display:flex;gap:12px;animation:in .22s ease-out both}
+@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.msg .avatar{width:32px;height:32px;font-size:13px}
+.msg.bot .avatar{background:var(--panel);border:1px solid var(--border);color:var(--accent)}
+.msg.bot .avatar svg{width:17px;height:17px;stroke:var(--accent)}
+.bubble{padding:11px 15px;border-radius:16px;max-width:calc(100% - 46px);overflow-wrap:anywhere}
+.msg.user{flex-direction:row-reverse}
+.msg.user .bubble{background:var(--user-bubble);color:#fff;border-bottom-right-radius:5px;white-space:pre-wrap}
+.msg.bot .bubble{background:var(--bot-bubble);border:1px solid var(--border);border-top-left-radius:5px;box-shadow:var(--shadow)}
+.bubble p{margin:0 0 .7em} .bubble p:last-child{margin:0}
+.bubble ul,.bubble ol{margin:.3em 0 .7em;padding-left:1.4em} .bubble li{margin:.2em 0}
+.bubble code{background:var(--panel-2);padding:1px 6px;border-radius:6px;font-size:.9em}
+.bubble .src{margin-top:10px;padding-top:8px;border-top:1px dashed var(--border);font-size:12.5px;color:var(--muted)}
+.msg.error .bubble{border-color:var(--danger);color:var(--danger)}
+.typing{display:inline-flex;gap:4px;padding:4px 0}
+.typing i{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:b 1.1s infinite ease-in-out}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes b{0%,80%,100%{opacity:.25;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+.composer{padding:10px 20px 20px}
+.composer form{max-width:780px;margin:0 auto;display:flex;align-items:flex-end;gap:10px;background:var(--panel);
+  border:1px solid var(--border);border-radius:18px;padding:8px 8px 8px 16px;box-shadow:var(--shadow)}
+.composer form:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
+textarea{flex:1;resize:none;border:0;background:transparent;outline:none!important;box-shadow:none!important;padding:8px 0;max-height:160px;line-height:1.45}
+.send{width:40px;height:40px;border-radius:12px;padding:0;flex:none}
+.send svg{width:18px;height:18px}
+.hint{max-width:780px;margin:8px auto 0;text-align:center;font-size:12px;color:var(--muted)}
+
+@media (max-width:820px){
+  #app{grid-template-columns:1fr}
+  aside{position:fixed;inset:0 20% 0 0;z-index:20;transform:translateX(-100%);transition:transform .22s;max-width:340px;box-shadow:var(--shadow)}
+  aside.open{transform:none}
+  .scrim{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:10}
+  .topbar{display:flex}
+}
+</style>
+</head>
+<body>
+
+<!-- ===================== LOGIN ===================== -->
+<section id="login">
+  <form class="card" id="loginForm" autocomplete="on">
+    <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h8"/></svg></div>
+    <h1>Intranet Q&amp;A</h1>
+    <p class="sub">Ask questions about company documents you're allowed to see.</p>
+    <label for="u">Username</label>
+    <input id="u" type="text" autocomplete="username" required autofocus>
+    <label for="p">Password</label>
+    <input id="p" type="password" autocomplete="current-password" required>
+    <div class="error" id="loginError"></div>
+    <button class="btn block" id="loginBtn" type="submit">Sign in</button>
+    <div class="demo">
+      Demo users (password <code>password</code>):<br>
+      <button type="button" data-u="alice-engineering">alice-engineering</button>
+      <button type="button" data-u="bob-finance">bob-finance</button>
+      <button type="button" data-u="carol-admin">carol-admin</button>
+    </div>
+  </form>
+</section>
+
+<!-- ===================== APP ===================== -->
+<div id="app" class="hidden">
+  <aside id="sidebar">
+    <div class="brand">
+      <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h8"/></svg></div>
+      Intranet Q&amp;A
+    </div>
+    <div class="me">
+      <div class="avatar" id="avatar">?</div>
+      <div class="who"><div class="name" id="meName"></div><div class="chips" id="meChips"></div></div>
+    </div>
+
+    <div class="section" id="uploadSection">
+      <h3>Upload</h3>
+      <div class="drop" id="drop">
+        <strong>Drop a file or click to browse</strong>
+        PDF, Markdown or text
+      </div>
+      <input type="file" id="file" accept=".pdf,.md,.markdown,.txt" class="hidden">
+      <div class="picked" id="picked"></div>
+      <div class="upload-row">
+        <select id="group" title="Who can read this document"></select>
+        <button class="btn" id="uploadBtn" disabled>Upload</button>
+      </div>
+      <div class="status" id="uploadStatus"></div>
+    </div>
+
+    <div class="section" id="docsSection" style="flex:1">
+      <h3>Documents</h3>
+      <div id="docs"></div>
+    </div>
+
+    <div class="side-foot"><button class="btn ghost block" id="logout" style="margin-top:0">Sign out</button></div>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <button id="menu" aria-label="Open menu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <strong>Intranet Q&amp;A</strong>
+    </div>
+    <div id="messages"><div class="thread" id="thread"></div></div>
+    <div class="composer">
+      <form id="chatForm">
+        <textarea id="q" rows="1" placeholder="Ask about your documents…" autocomplete="off"></textarea>
+        <button class="btn send" id="sendBtn" type="submit" aria-label="Send">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+        </button>
+      </form>
+      <div class="hint">Answers are built only from documents your groups can access. Enter to send, Shift+Enter for a new line.</div>
+    </div>
+  </main>
+</div>
+<div class="scrim hidden" id="scrim"></div>
+
+<script>
+// ---- Config: Keycloak (login) and this app (API). Change KEYCLOAK if yours differs. ----
+const KEYCLOAK = 'http://localhost:8081/realms/intranetqa/protocol/openid-connect/token';
+const CLIENT_ID = 'intranet-qa';
+
+const $ = id => document.getElementById(id);
+const store = { get(k){ try{return sessionStorage.getItem(k)}catch{return null} },
+                set(k,v){ try{sessionStorage.setItem(k,v)}catch{} },
+                del(k){ try{sessionStorage.removeItem(k)}catch{} } };
+let token = store.get('token');
+let me = null;
+let pickedFile = null;
+
+const BOT_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h8"/></svg>';
+
+/* ---------------- API helper ---------------- */
+async function api(path, opts = {}) {
+  const res = await fetch(path, { ...opts, headers: { ...(opts.headers||{}), Authorization: 'Bearer ' + token } });
+  if (res.status === 401) { signOut('Your session expired. Please sign in again.'); throw new Error('unauthorized'); }
+  if (!res.ok) {
+    let msg = res.status + ' ' + res.statusText;
+    try { const j = await res.json(); msg = j.message || j.detail || j.error || msg; } catch {}
+    if (res.status === 403 && msg.startsWith('403')) msg = 'You are not allowed to do that.';
+    throw new Error(msg);
+  }
+  return res.status === 204 ? null : res.json();
+}
+
+/* ---------------- Login ---------------- */
+document.querySelectorAll('.demo button').forEach(b => b.onclick = () => { $('u').value = b.dataset.u; $('p').value = 'password'; $('p').focus(); });
+
+$('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  $('loginError').textContent = ''; $('loginBtn').disabled = true; $('loginBtn').textContent = 'Signing in…';
+  try {
+    const res = await fetch(KEYCLOAK, { method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:new URLSearchParams({ grant_type:'password', client_id:CLIENT_ID, username:$('u').value.trim(), password:$('p').value }) });
+    if (!res.ok) throw new Error(res.status === 401 ? 'Wrong username or password.' : 'Login failed (' + res.status + ').');
+    token = (await res.json()).access_token;
+    store.set('token', token);
+    await startApp();
+  } catch (err) {
+    $('loginError').textContent = err instanceof TypeError ? 'Cannot reach Keycloak at ' + new URL(KEYCLOAK).origin + '. Is it running?' : err.message;
+  } finally { $('loginBtn').disabled = false; $('loginBtn').textContent = 'Sign in'; }
+});
+
+function signOut(message) {
+  token = null; me = null; store.del('token');
+  $('app').classList.add('hidden'); $('login').classList.remove('hidden');
+  $('thread').innerHTML = ''; $('p').value = '';
+  $('loginError').textContent = message || '';
+}
+$('logout').onclick = () => signOut();
+
+/* ---------------- App start ---------------- */
+async function startApp() {
+  me = await api('/api/me');
+  $('login').classList.add('hidden'); $('app').classList.remove('hidden');
+  $('avatar').textContent = me.username[0];
+  $('meName').textContent = me.username;
+  $('meChips').innerHTML = me.roles.filter(r => r !== 'user').map(r => `<span class="chip role">${esc(r)}</span>`).join('')
+    + me.groups.map(g => `<span class="chip">${esc(g)}</span>`).join('');
+  const canUpload = me.roles.includes('uploader') || me.roles.includes('admin');
+  $('uploadSection').classList.toggle('hidden', !canUpload);
+  $('docsSection').classList.toggle('hidden', !canUpload);
+  if (canUpload) {
+    $('group').innerHTML = me.groups.map(g => `<option>${esc(g)}</option>`).join('');
+    loadDocs();
+  }
+  showWelcome();
+  $('q').focus();
+}
+
+/* ---------------- Documents ---------------- */
+async function loadDocs() {
+  try {
+    const docs = await api('/api/documents');
+    $('docs').innerHTML = docs.length ? docs.map(d => `
+      <div class="doc">
+        <div class="ic">${esc((d.filename.split('.').pop()||'').slice(0,4).toUpperCase())}</div>
+        <div class="meta"><div class="fn" title="${esc(d.filename)}">${esc(d.filename)}</div>
+          <div class="sub">${esc(d.allowedGroup)} · ${d.chunkCount} chunks · ${esc(d.uploadedBy)}</div></div>
+        <button class="del" title="Delete" data-id="${d.id}" data-name="${esc(d.filename)}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12h10l1-12M9 7V4h6v3"/></svg></button>
+      </div>`).join('') : '<div class="empty">No documents yet.</div>';
+    $('docs').querySelectorAll('.del').forEach(b => b.onclick = async () => {
+      if (!confirm('Delete "' + b.dataset.name + '" and all its indexed content?')) return;
+      try { await api('/api/documents/' + b.dataset.id, { method:'DELETE' }); loadDocs(); }
+      catch (e) { setStatus(e.message, true); }
+    });
+  } catch (e) { if (e.message !== 'unauthorized') $('docs').innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+}
+
+const drop = $('drop'), fileInput = $('file');
+drop.onclick = () => fileInput.click();
+fileInput.onchange = () => pick(fileInput.files[0]);
+['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => pick(e.dataTransfer.files[0]));
+function pick(f) { pickedFile = f || null; $('picked').textContent = f ? '📄 ' + f.name : ''; $('uploadBtn').disabled = !f; setStatus(''); }
+function setStatus(t, err) { const s = $('uploadStatus'); s.textContent = t; s.className = 'status ' + (t ? (err ? 'err' : 'ok') : ''); }
+
+$('uploadBtn').onclick = async () => {
+  if (!pickedFile) return;
+  const fd = new FormData(); fd.append('file', pickedFile); fd.append('allowedGroup', $('group').value);
+  $('uploadBtn').disabled = true; setStatus('Indexing… this can take a moment.');
+  $('uploadStatus').className = 'status'; 
+  try {
+    const r = await api('/api/documents', { method:'POST', body: fd });
+    setStatus('Indexed ' + r.chunkCount + ' chunks.'); pick(null); fileInput.value = ''; loadDocs();
+  } catch (e) { setStatus(e.message, true); $('uploadBtn').disabled = false; }
+};
+
+/* ---------------- Chat ---------------- */
+const SUGGESTIONS = ['What documents can you answer questions about?', 'Summarize the main points of the latest document', 'What does the manual say about setup?'];
+function showWelcome() {
+  $('thread').innerHTML = `<div class="welcome" id="welcome">
+    <div class="logo">${BOT_ICON}</div><h2>Hi ${esc(me.username.split('-')[0])}, what do you want to know?</h2>
+    <p>I answer from documents shared with your groups (${me.groups.map(esc).join(', ') || 'none'}) and cite the source.</p>
+    <div class="suggest">${SUGGESTIONS.map(s => `<button type="button">${esc(s)}</button>`).join('')}</div></div>`;
+  $('thread').querySelectorAll('.suggest button').forEach(b => b.onclick = () => { $('q').value = b.textContent; $('chatForm').requestSubmit(); });
+}
+
+function addMsg(role, html, cls = '') {
+  $('welcome')?.remove();
+  const el = document.createElement('div'); el.className = 'msg ' + role + ' ' + cls;
+  el.innerHTML = `<div class="avatar">${role === 'user' ? esc(me.username[0]) : BOT_ICON}</div><div class="bubble">${html}</div>`;
+  $('thread').appendChild(el); $('messages').scrollTop = $('messages').scrollHeight; return el;
+}
+
+$('chatForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const q = $('q').value.trim(); if (!q) return;
+  $('q').value = ''; autoGrow(); addMsg('user', esc(q));
+  const pending = addMsg('bot', '<span class="typing"><i></i><i></i><i></i></span>');
+  const bubble = pending.querySelector('.bubble');
+  $('sendBtn').disabled = true;
+  let text = '';
+  try {
+    await streamChat(q, token => {
+      text += token; bubble.innerHTML = renderMarkdown(text); stickToBottom();
+    });
+    if (!text) bubble.innerHTML = '<p>(no answer)</p>';
+  } catch (err) {
+    if (err.message === 'unauthorized') return;
+    if (text) { bubble.insertAdjacentHTML('beforeend', '<div class="src">⚠️ Interrupted: ' + esc(err.message) + '</div>'); }
+    else { pending.classList.add('error'); bubble.textContent = 'Something went wrong: ' + err.message; }
+  } finally { $('sendBtn').disabled = false; $('q').focus(); stickToBottom(true); }
+});
+
+// Only follow the stream down if the reader hasn't scrolled up to re-read something.
+function stickToBottom(force) {
+  const m = $('messages');
+  if (force || m.scrollHeight - m.scrollTop - m.clientHeight < 140) m.scrollTop = m.scrollHeight;
+}
+
+// POST + fetch (not EventSource) because we must send the Authorization header.
+// Each SSE event carries {"t": "<token>"}; an "error" event carries the message.
+async function streamChat(question, onToken) {
+  const res = await fetch('/api/chat/stream', { method:'POST',
+    headers:{ 'Content-Type':'application/json', 'Accept':'text/event-stream', Authorization:'Bearer ' + token },
+    body: JSON.stringify({ question }) });
+  if (res.status === 401) { signOut('Your session expired. Please sign in again.'); throw new Error('unauthorized'); }
+  if (!res.ok) {
+    let msg = res.status + ' ' + res.statusText;
+    try { const j = await res.json(); msg = j.message || j.detail || j.error || msg; } catch {}
+    throw new Error(msg);
+  }
+  const reader = res.body.getReader(), decoder = new TextDecoder();
+  let buf = '';
+  const handle = block => {
+    let event = 'message', data = [];
+    for (const line of block.split(/\r?\n/)) {
+      if (line.startsWith('event:')) event = line.slice(6).trim();
+      else if (line.startsWith('data:')) data.push(line.slice(5).replace(/^ /, ''));
+    }
+    if (!data.length) return;
+    const t = JSON.parse(data.join('\n')).t;
+    if (event === 'error') throw new Error(t);
+    onToken(t);
+  };
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    let m;
+    while ((m = buf.match(/\r?\n\r?\n/))) {
+      handle(buf.slice(0, m.index)); buf = buf.slice(m.index + m[0].length);
+    }
+  }
+  if (buf.trim()) handle(buf);
+}
+
+const qEl = $('q');
+function autoGrow() { qEl.style.height = 'auto'; qEl.style.height = Math.min(qEl.scrollHeight, 160) + 'px'; }
+qEl.addEventListener('input', autoGrow);
+qEl.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('chatForm').requestSubmit(); } });
+
+/* ---------------- Tiny safe markdown ---------------- */
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function inline(s) { return esc(s).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<em>$2</em>'); }
+function renderMarkdown(text) {
+  const lines = String(text).replace(/\r/g,'').split('\n'); let out = '', list = null, para = [];
+  const flushPara = () => { if (para.length) { out += '<p>' + para.map(inline).join('<br>') + '</p>'; para = []; } };
+  const closeList = () => { if (list) { out += `</${list}>`; list = null; } };
+  for (const raw of lines) {
+    const line = raw.trimEnd(); let m;
+    if (/^\s*Source:/i.test(line)) { flushPara(); closeList(); out += '<div class="src">📎 ' + inline(line.replace(/^\s*Source:\s*/i,'')) + '</div>'; }
+    else if ((m = line.match(/^\s*[-*•]\s+(.*)/))) { flushPara(); if (list !== 'ul') { closeList(); out += '<ul>'; list = 'ul'; } out += '<li>' + inline(m[1]) + '</li>'; }
+    else if ((m = line.match(/^\s*\d+[.)]\s+(.*)/))) { flushPara(); if (list !== 'ol') { closeList(); out += '<ol>'; list = 'ol'; } out += '<li>' + inline(m[1]) + '</li>'; }
+    else if (!line.trim()) { flushPara(); closeList(); }
+    else { closeList(); para.push(line); }
+  }
+  flushPara(); closeList(); return out || '<p>(no answer)</p>';
+}
+
+/* ---------------- Mobile sidebar ---------------- */
+const toggle = open => { $('sidebar').classList.toggle('open', open); $('scrim').classList.toggle('hidden', !open); };
+$('menu').onclick = () => toggle(true); $('scrim').onclick = () => toggle(false);
+
+/* ---------------- Boot: reuse a token from this tab if still valid ---------------- */
+if (token) startApp().catch(() => signOut());
+</script>
+</body>
+</html>
